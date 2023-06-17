@@ -6,6 +6,7 @@
             <name>PowerBoard_ver2</name>
             <creation-uuid>a306c91a-3794-4229-a58d-965c2385bd91</creation-uuid>
             <make-project-type>0</make-project-type>
+            <sourceEncoding>Shift_JIS</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList/>
             <confList>
@@ -14,7 +15,6 @@
                     <type>2</type>
                 </confElem>
             </confList>
-            <sourceEncoding>Shift_JIS</sourceEncoding>
             <formatting>
                 <project-formatting-style>false</project-formatting-style>
             </formatting>

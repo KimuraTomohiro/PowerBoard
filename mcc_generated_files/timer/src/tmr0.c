@@ -40,7 +40,7 @@ const struct TMR_INTERFACE Timer0 = {
     .Stop = Timer0_Stop,
     .PeriodCountSet = Timer0_Reload,
     .TimeoutCallbackRegister = Timer0_OverflowCallbackRegister,
-    .Tasks = Timer0_Tasks
+    .Tasks = NULL
 };
 
 static void (*Timer0_OverflowCallback)(void);
@@ -48,24 +48,27 @@ static void Timer0_DefaultOverflowCallback(void);
 
 void Timer0_Initialize(void)
 {
-    //TMR0H 255; 
-    TMR0H = 0xFF;
+    //TMR0H 243; 
+    TMR0H = 0xF3;
 
     //TMR0L 0; 
     TMR0L = 0x0;
 
-    //T0CS HFINTOSC; T0CKPS 1:1; T0ASYNC synchronised; 
-    T0CON1 = 0x60;
+    //T0CS HFINTOSC; T0CKPS 1:2048; T0ASYNC synchronised; 
+    T0CON1 = 0x6B;
 
 
     //Set default callback for TMR0 overflow interrupt
     Timer0_OverflowCallbackRegister(Timer0_DefaultOverflowCallback);
 
-    //Clear interrupt flag
+    //Clear Interrupt flag before enabling the interrupt
     PIR0bits.TMR0IF = 0;
-
-    //T0OUTPS 1:1; T0EN enabled; T016BIT 8-bit; 
-    T0CON0 = 0x80;
+	
+    //Enable TMR0 interrupt.
+    PIE0bits.TMR0IE = 1;
+	
+    //T0OUTPS 1:8; T0EN enabled; T016BIT 8-bit; 
+    T0CON0 = 0x87;
 }
 
 void Timer0_Start(void)
@@ -100,6 +103,15 @@ void Timer0_Reload(size_t periodVal)
    TMR0H = (uint8_t)periodVal;
 }
 
+void Timer0_OverflowISR(void)
+{
+    //Clear the TMR0 interrupt flag
+    PIR0bits.TMR0IF = 0;
+    if(Timer0_OverflowCallback)
+    {
+        Timer0_OverflowCallback();
+    }
+}
 
 void Timer0_OverflowCallbackRegister(void (* CallbackHandler)(void))
 {
@@ -112,11 +124,3 @@ static void Timer0_DefaultOverflowCallback(void)
     //Use Timer0_OverflowCallbackRegister function to use Custom ISR
 }
 
-void Timer0_Tasks(void)
-{
-    if(PIR0bits.TMR0IF)
-    {
-        PIR0bits.TMR0IF = 0;
-        Timer0_OverflowCallback();
-    }
-}

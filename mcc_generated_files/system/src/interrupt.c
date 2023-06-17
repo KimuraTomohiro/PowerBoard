@@ -79,6 +79,10 @@ void __interrupt() INTERRUPT_InterruptManager (void)
         {
             EUSART1_RxInterruptHandler();
         } 
+        else if(PIE0bits.TMR0IE == 1 && PIR0bits.TMR0IF == 1)
+        {
+            Timer0_OverflowISR();
+        } 
         else
         {
             //Unhandled Interrupt

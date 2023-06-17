@@ -15,6 +15,7 @@ char uart_mode;
 void control_table_update(void);
 void RS485master_mode(void);
 void RS485slave_mode(void);
+unsigned char buf[50]; 
 
 
 int main(void)
@@ -29,9 +30,9 @@ int main(void)
     
     init();
 
-    FLASH_RowWrite(6,1023);
     if(control_table[ID_addr] == 0){
         RS485master_mode();
+        
     }else{
         RS485slave_mode();
     }
@@ -43,7 +44,9 @@ int main(void)
 void putch(unsigned char Data)
 {
     if(uart_mode == 0){
+        while(!EUSART2_IsTxReady());
         EUSART2_Write(Data);
+        while(!EUSART2_IsTxDone());
     }else if(uart_mode == 1){
         RS485_SW_SetHigh();
         EUSART1_Write(Data);
@@ -59,11 +62,41 @@ return;
 void RS485master_mode(void){
     
     uart_mode = 0;
-    
+    printf("Waiting command...\n");
     while(1){
-        printf("MasterMode!");
         
-        __delay_ms(20);
+        //uart_mode = 0;
+        //
+
+        while(EUSART2_IsRxReady() == false);
+        int buf_count = 0;
+        do{
+        while(EUSART2_IsRxReady() == false);
+        buf[buf_count] = EUSART2_Read();
+        
+        buf_count++;
+        
+        if(buf_count >= 50){
+            break;
+        }
+           
+        }while(buf[buf_count - 1] != '-');
+        
+        buf[buf_count - 1] = '\0';
+        
+        printf("\n\n");
+        printf(buf);
+        printf("\ncount num:%d\n",buf_count);
+        printf("Waiting command...\n");
+        
+        
+        for(int i=0; i<50; i++){
+            buf[i] = 0;
+        }
+        
+        
+        
+        
     }
     
 }
@@ -79,13 +112,18 @@ void init(void){
     RS485_SW_SetLow();
     LED_PD_SetHigh();
     
+    SE_SetLow();
+    
     control_table[ID_addr] = SW_bit1_PORT + SW_bit2_PORT * 2 + SW_bit3_PORT * 4;
     
     
-    
+    control_table[voltage_offset_addr] = FLASH_Read(6);
+    if(control_table[voltage_offset_addr] == 0xFF){
+        control_table[voltage_offset_addr] = 0;
+    }
     
     uart_mode = 0;
-    printf("SystemStart\n");
+    printf("System Initialized\n");
     __delay_ms(10);
 }
 

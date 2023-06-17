@@ -50,24 +50,24 @@
 #define PULL_UP_DISABLED     0
 
 // get/set IO_RA0 aliases
-#define SW_TRIS                 TRISAbits.TRISA0
-#define SW_LAT                  LATAbits.LATA0
-#define SW_PORT                 PORTAbits.RA0
-#define SW_WPU                  WPUAbits.WPUA0
-#define SW_OD                   ODCONAbits.ODCA0
-#define SW_ANS                  ANSELAbits.ANSA0
-#define SW_SetHigh()            do { LATAbits.LATA0 = 1; } while(0)
-#define SW_SetLow()             do { LATAbits.LATA0 = 0; } while(0)
-#define SW_Toggle()             do { LATAbits.LATA0 = ~LATAbits.LATA0; } while(0)
-#define SW_GetValue()           PORTAbits.RA0
-#define SW_SetDigitalInput()    do { TRISAbits.TRISA0 = 1; } while(0)
-#define SW_SetDigitalOutput()   do { TRISAbits.TRISA0 = 0; } while(0)
-#define SW_SetPullup()          do { WPUAbits.WPUA0 = 1; } while(0)
-#define SW_ResetPullup()        do { WPUAbits.WPUA0 = 0; } while(0)
-#define SW_SetPushPull()        do { ODCONAbits.ODCA0 = 0; } while(0)
-#define SW_SetOpenDrain()       do { ODCONAbits.ODCA0 = 1; } while(0)
-#define SW_SetAnalogMode()      do { ANSELAbits.ANSA0 = 1; } while(0)
-#define SW_SetDigitalMode()     do { ANSELAbits.ANSA0 = 0; } while(0)
+#define SE_TRIS                 TRISAbits.TRISA0
+#define SE_LAT                  LATAbits.LATA0
+#define SE_PORT                 PORTAbits.RA0
+#define SE_WPU                  WPUAbits.WPUA0
+#define SE_OD                   ODCONAbits.ODCA0
+#define SE_ANS                  ANSELAbits.ANSA0
+#define SE_SetHigh()            do { LATAbits.LATA0 = 1; } while(0)
+#define SE_SetLow()             do { LATAbits.LATA0 = 0; } while(0)
+#define SE_Toggle()             do { LATAbits.LATA0 = ~LATAbits.LATA0; } while(0)
+#define SE_GetValue()           PORTAbits.RA0
+#define SE_SetDigitalInput()    do { TRISAbits.TRISA0 = 1; } while(0)
+#define SE_SetDigitalOutput()   do { TRISAbits.TRISA0 = 0; } while(0)
+#define SE_SetPullup()          do { WPUAbits.WPUA0 = 1; } while(0)
+#define SE_ResetPullup()        do { WPUAbits.WPUA0 = 0; } while(0)
+#define SE_SetPushPull()        do { ODCONAbits.ODCA0 = 0; } while(0)
+#define SE_SetOpenDrain()       do { ODCONAbits.ODCA0 = 1; } while(0)
+#define SE_SetAnalogMode()      do { ANSELAbits.ANSA0 = 1; } while(0)
+#define SE_SetDigitalMode()     do { ANSELAbits.ANSA0 = 0; } while(0)
 // get/set IO_RA1 aliases
 #define HES_TRIS                 TRISAbits.TRISA1
 #define HES_LAT                  LATAbits.LATA1

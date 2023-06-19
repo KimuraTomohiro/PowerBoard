@@ -128,5 +128,7 @@ void init(void){
 }
 
 void control_table_update(void){
-    
+    int adc_data;
+    adc_data = ADC_GetConversion(BAT);
+    printf("%d",adc_data);
 }

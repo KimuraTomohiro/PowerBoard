@@ -1,9 +1,11 @@
 
 #include "mcc_generated_files/system/system.h"
+#include <string.h>
+#include <ctype.h>
 
 #define ID_addr 1
 #define bat_type_addr 2
-#define voltage_addr 3
+#define voltage_addr 3//3が下位ビット４が上位ビット
 #define output_addr 5
 #define voltage_offset_addr 6
 
@@ -26,7 +28,7 @@ int main(void)
     INTERRUPT_PeripheralInterruptEnable();
     Timer0_OverflowCallbackRegister(control_table_update);
     
-    __delay_ms(500);
+    __delay_ms(2000);
     
     init();
 
@@ -62,12 +64,12 @@ return;
 void RS485master_mode(void){
     
     uart_mode = 0;
-    printf("Waiting command...\n");
+    
     while(1){
         
         //uart_mode = 0;
         //
-
+    printf("Waiting command...\n");
         while(EUSART2_IsRxReady() == false);
         int buf_count = 0;
         do{
@@ -83,13 +85,52 @@ void RS485master_mode(void){
         }while(buf[buf_count - 1] != '-');
         
         buf[buf_count - 1] = '\0';
+        //ここからコマンド処理を記載
+//        printf("\n\n");
+//        printf(buf);
+//        printf("\ncount num:%d\n",buf_count);
+//        printf("Waiting command...\n");
         
-        printf("\n\n");
-        printf(buf);
-        printf("\ncount num:%d\n",buf_count);
-        printf("Waiting command...\n");
+        if(strncmp(buf,"ON", strlen("ON")) == 0){
+            if(isdigit(buf[3]) == 1){ 
+                printf("Turn ON Board%d\n",buf[3] - '0');
+                //実行用コマンド書く
+                //数字から’０’を引くことで数値に変換できる
+            }else{
+                printf("Irregular Board num\n");
+            }
+            
+        }
+        
+        if(strncmp(buf,"OFF", strlen("OFF")) == 0){
+            if(isdigit(buf[4]) == 1){ 
+                printf("Turn OFF Board%d\n",buf[4] - '0');
+                //実行用コマンド書く
+                //数字から’０’を引くことで数値に変換できる
+            }else{
+                printf("Irregular Board num\n");
+            }
+            
+        }
+        
+        if(strncmp(buf,"GETV", strlen("GETV")) == 0){
+            if(isdigit(buf[5]) == 1){ 
+                printf("OK Board%d: ",buf[5] - '0');
+                double voltage;
+                
+                voltage = (double)((control_table[voltage_addr+1]<<8)+control_table[voltage_addr])/1023 * 5.04 * 11;;
+                
+               //printf("%1lf",voltage);ここのなおしかたわからん
+            }else{
+                printf("Irregular Board num\n");
+            }
+            
+        }
         
         
+        
+        
+        //ここまでコマンド処理
         for(int i=0; i<50; i++){
             buf[i] = 0;
         }
@@ -130,5 +171,16 @@ void init(void){
 void control_table_update(void){
     int adc_data;
     adc_data = ADC_GetConversion(BAT);
-    printf("%d",adc_data);
+    control_table[voltage_addr] = adc_data;
+    control_table[voltage_addr + 1] = adc_data>>8;
+    
+    int voltage = (adc_data * 5 * 11)/1023;
+    if(voltage<=15 && voltage>5){
+        control_table[bat_type_addr] = 1;//12Vバッテリ
+    }else if(voltage<=30 && voltage>20){
+        control_table[bat_type_addr] = 2;//24Vバッテリ
+    }else{
+        control_table[bat_type_addr] = 0;
+    }
+    //printf("%d",(control_table[voltage_addr+1]<<8)+control_table[voltage_addr]);
 }

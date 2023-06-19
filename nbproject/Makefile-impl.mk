@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=PowerBoard_ver2.X
+PROJECTNAME=PowerBoard
 
 # Active Configuration
 DEFAULTCONF=default

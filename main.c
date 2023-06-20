@@ -132,7 +132,7 @@ void RS485master_mode(void){
         }else if(strncmp(buf,"GETV", strlen("GETV")) == 0){
             if(isdigit(buf[5]) == 1){
                 
-                printf("OK Board %d: ",buf[5] - '0');
+                printf("Board %d: ",buf[5] - '0');
                 double voltage;
                 if(buf[5]-'0'==0){
                     voltage = (double)((control_table[voltage_addr+1]<<8)+control_table[voltage_addr])/1023 * 5.04 * 11;
@@ -141,9 +141,12 @@ void RS485master_mode(void){
                     char *voltage_buf = RS485_Receive();
                     voltage = (double)((voltage_buf[5]<<8)+control_table[4])/1023 * 5.04 * 11;
                 }
-                
+                if(timeout_flug == 0){
                 printf("%d.",(int)voltage);
                 printf("%d\n\n",(int)(10*(voltage - (int)voltage)));
+                }else{
+                    printf("Error\n\n");
+                }
             }else{
                 printf("Irregular Board num\n\n");
             }
@@ -224,7 +227,7 @@ void RS485slave_mode(void){
                 //‘‚«ž‚Ý–½—ß‚ÌÛ
                 control_table[get_buf[3]]=get_buf[5];
             }else if(get_buf[4] == 0){
-                __delay_ms(5);
+                __delay_ms(1);
                 RS485_Send(0,get_buf[3],0,control_table[get_buf[3]],control_table[get_buf[3]+1]);
             }
         }
@@ -358,7 +361,6 @@ char *RS485_Receive(){
     while(EUSART1_IsRxReady() == false){
         
         if(timeout_flug == 1){
-            printf("a");
             for(int t=0;t<7;t++){
             RS485_buf[t] = 0;
             return RS485_buf;
@@ -367,16 +369,15 @@ char *RS485_Receive(){
             
     }
     for(char i = 0;i<7; i++){
-        printf("OK");
+//        printf("OK");
         while(EUSART1_IsRxReady() == false){
         if(timeout_flug == 1){
             for(int t=0;t<7;t++){
             RS485_buf[t] = 0;
             return RS485_buf;
-    }
+                }   
+            }
         }
-            
-    }
         RS485_buf[i] = EUSART1_Read();
     }
 
@@ -388,5 +389,4 @@ void timeout_flug_maker(void){
     timeout_flug = 1;
     Timer1_Stop();
     Timer1_Write(0);
-    EUSART2_Write("!");
 }

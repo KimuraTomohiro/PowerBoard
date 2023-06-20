@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include "timer_interface.h"
 
+#define Timer1_INTERRUPT_TICKER_FACTOR    1
 
 /**
  * @ingroup tmr1
@@ -125,6 +126,13 @@ void Timer1_StartSinglePulseAcquisition(void);
  */
 uint8_t Timer1_CheckGateValueStatus(void);
 
+/**
+ * @ingroup tmr1
+ * @brief Timer Interrupt Service Routine (ISR) called by the Interrupt Manager for overflow.
+ * @param None.
+ * @return None.
+ */
+void Timer1_OverflowISR(void);
 
 /**
  * @ingroup tmr1
@@ -134,13 +142,6 @@ uint8_t Timer1_CheckGateValueStatus(void);
  */
  void Timer1_OverflowCallbackRegister(void (* CallbackHandler)(void));
 
-/**
- * @ingroup tmr1
- * @brief Performs the tasks to be executed on timer overflow event.
- * @param None.
- * @return None.
- */
-void Timer1_Tasks(void);
 
 /**
  * @ingroup tmr1

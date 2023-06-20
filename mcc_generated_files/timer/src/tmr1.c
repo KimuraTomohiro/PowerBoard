@@ -47,9 +47,9 @@ const struct TMR_INTERFACE Timer1 = {
     .Initialize = Timer1_Initialize,
     .Start = Timer1_Start,
     .Stop = Timer1_Stop,
-    .PeriodCountSet = Timer1_Write,
+    .PeriodCountSet = Timer1_PeriodCountSet,
     .TimeoutCallbackRegister = Timer1_OverflowCallbackRegister,
-    .Tasks = Timer1_Tasks
+    .Tasks = NULL
 };
 static void (*Timer1_OverflowCallback)(void);
 static void Timer1_DefaultOverflowCallback(void);
@@ -62,10 +62,10 @@ void Timer1_Initialize(void)
     T1GATE = 0x0;
     //TMRCS T1CKIPPS; 
     T1CLK = 0x0;
-    //TMRH 255; 
-    TMR1H = 0xFF;
-    //TMRL 254; 
-    TMR1L = 0xFE;
+    //TMRH 252; 
+    TMR1H = 0xFC;
+    //TMRL 23; 
+    TMR1L = 0x17;
 
     // Load the TMR1 value to reload variable
     timer1ReloadVal=(uint16_t)((TMR1H << 8) | TMR1L);
@@ -73,12 +73,13 @@ void Timer1_Initialize(void)
     //Set default callback for TMR1 overflow interrupt
     Timer1_OverflowCallbackRegister(Timer1_DefaultOverflowCallback);
 
-    //Clear interrupt flags
-    PIR4bits.TMR1IF = 0;
-    PIR5bits.TMR1GIF = 0;
+    // Clearing TMRI IF flag before enabling the interrupt.
+     PIR4bits.TMR1IF = 0;
+    // Enabling TMRI interrupt.
+     PIE4bits.TMR1IE = 1;
     
-    //TMRON disabled; TRD16 disabled; nTSYNC synchronize; TCKPS 1:1; 
-    T1CON = 0x0;
+    //TMRON enabled; TRD16 disabled; nTSYNC synchronize; TCKPS 1:1; 
+    T1CON = 0x1;
 }
 
 void Timer1_Start(void)
@@ -150,6 +151,20 @@ uint8_t Timer1_CheckGateValueStatus(void)
     return (T1GCONbits.T1GVAL);
 }
 
+void Timer1_OverflowISR(void)
+{
+
+    // Clear the TMR1 interrupt flag
+    PIR4bits.TMR1IF = 0;
+    Timer1_Write(timer1ReloadVal);
+
+    // ticker function call;
+    // ticker is 1 -> Callback function gets called everytime this ISR executes
+    if(Timer1_OverflowCallback)
+        {
+            Timer1_OverflowCallback();
+        }
+}
 
 void Timer1_OverflowCallbackRegister(void (* CallbackHandler)(void))
 {
@@ -173,14 +188,6 @@ void Timer1_GateISR(void)
     PIR5bits.TMR1GIF = 0;
 }
 
-void Timer1_Tasks(void)
-{
-    if(PIR4bits.TMR1IF)
-    {
-        PIR4bits.TMR1IF = 0;
-        Timer1_OverflowCallback();
-    }
-}
 
 /**
   End of File

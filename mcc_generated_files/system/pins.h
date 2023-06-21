@@ -87,7 +87,6 @@
 #define HES_SetOpenDrain()       do { ODCONAbits.ODCA1 = 1; } while(0)
 #define HES_SetAnalogMode()      do { ANSELAbits.ANSA1 = 1; } while(0)
 #define HES_SetDigitalMode()     do { ANSELAbits.ANSA1 = 0; } while(0)
-#define RA1_SetInterruptHandler  HES_SetInterruptHandler
 // get/set IO_RB2 aliases
 #define BAT_TRIS                 TRISBbits.TRISB2
 #define BAT_LAT                  LATBbits.LATB2
@@ -350,46 +349,6 @@ void PIN_MANAGER_Initialize (void);
  * @return none
  */
 void PIN_MANAGER_IOC(void);
-
-/**
- * @ingroup  pinsdriver
- * @brief Interrupt on Change Handler for the HES pin functionality
- * @param none
- * @return none
- */
-void HES_ISR(void);
-
-/**
- * @ingroup  pinsdriver
- * @brief Interrupt Handler Setter for HES pin interrupt-on-change functionality.
- *        Allows selecting an interrupt handler for HES at application runtime.
- * @pre Pins intializer called
- * @param InterruptHandler function pointer.
- * @return none
- */
-void HES_SetInterruptHandler(void (* InterruptHandler)(void));
-
-/**
- * @ingroup  pinsdriver
- * @brief Dynamic Interrupt Handler for HES pin.
- *        This is a dynamic interrupt handler to be used together with the HES_SetInterruptHandler() method.
- *        This handler is called every time the HES ISR is executed and allows any function to be registered at runtime.
- * @pre Pins intializer called
- * @param none
- * @return none
- */
-extern void (*HES_InterruptHandler)(void);
-
-/**
- * @ingroup  pinsdriver
- * @brief Default Interrupt Handler for HES pin. 
- *        This is a predefined interrupt handler to be used together with the HES_SetInterruptHandler() method.
- *        This handler is called every time the HES ISR is executed. 
- * @pre Pins intializer called
- * @param none
- * @return none
- */
-void HES_DefaultInterruptHandler(void);
 
 
 #endif // PINS_H

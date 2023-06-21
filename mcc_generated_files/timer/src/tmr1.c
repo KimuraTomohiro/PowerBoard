@@ -62,10 +62,10 @@ void Timer1_Initialize(void)
     T1GATE = 0x0;
     //TMRCS FOSC/4; 
     T1CLK = 0x1;
-    //TMRH 177; 
-    TMR1H = 0xB1;
-    //TMRL 223; 
-    TMR1L = 0xDF;
+    //TMRH 99; 
+    TMR1H = 0x63;
+    //TMRL 191; 
+    TMR1L = 0xBF;
 
     // Load the TMR1 value to reload variable
     timer1ReloadVal=(uint16_t)((TMR1H << 8) | TMR1L);
@@ -78,8 +78,8 @@ void Timer1_Initialize(void)
     // Enabling TMRI interrupt.
      PIE4bits.TMR1IE = 1;
     
-    //TMRON enabled; TRD16 disabled; nTSYNC synchronize; TCKPS 1:1; 
-    T1CON = 0x1;
+    //TMRON enabled; TRD16 disabled; nTSYNC synchronize; TCKPS 1:2; 
+    T1CON = 0x11;
 }
 
 void Timer1_Start(void)

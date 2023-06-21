@@ -42,7 +42,6 @@
 #include "../adc/adc.h"
 #include "../uart/eusart1.h"
 #include "../uart/eusart2.h"
-#include "../nvm/nvm.h"
 #include "../timer/tmr0.h"
 #include "../timer/tmr1.h"
 #include "../system/interrupt.h"

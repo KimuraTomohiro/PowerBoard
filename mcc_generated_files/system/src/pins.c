@@ -34,7 +34,6 @@
 
 #include "../pins.h"
 
-void (*HES_InterruptHandler)(void);
 
 void PIN_MANAGER_Initialize(void)
 {
@@ -105,8 +104,8 @@ void PIN_MANAGER_Initialize(void)
    /**
     IOCx registers 
     */
-    IOCAP = 0x2;
-    IOCAN = 0x2;
+    IOCAP = 0x0;
+    IOCAN = 0x0;
     IOCAF = 0x0;
     IOCBP = 0x0;
     IOCBN = 0x0;
@@ -118,49 +117,11 @@ void PIN_MANAGER_Initialize(void)
     IOCEN = 0x0;
     IOCEF = 0x0;
 
-    HES_SetInterruptHandler(HES_DefaultInterruptHandler);
 
-    // Enable PIE0bits.IOCIE interrupt 
-    PIE0bits.IOCIE = 1; 
 }
   
 void PIN_MANAGER_IOC(void)
 {
-    // interrupt on change for pin HES}
-    if(IOCAFbits.IOCAF1 == 1)
-    {
-        HES_ISR();  
-    }
-}
-   
-/**
-   HES Interrupt Service Routine
-*/
-void HES_ISR(void) {
-
-    // Add custom IOCAF1 code
-
-    // Call the interrupt handler for the callback registered at runtime
-    if(HES_InterruptHandler)
-    {
-        HES_InterruptHandler();
-    }
-    IOCAFbits.IOCAF1 = 0;
-}
-
-/**
-  Allows selecting an interrupt handler for IOCAF1 at application runtime
-*/
-void HES_SetInterruptHandler(void (* InterruptHandler)(void)){
-    HES_InterruptHandler = InterruptHandler;
-}
-
-/**
-  Default interrupt handler for IOCAF1
-*/
-void HES_DefaultInterruptHandler(void){
-    // add your HES interrupt custom code
-    // or set custom function using HES_SetInterruptHandler()
 }
 /**
  End of File

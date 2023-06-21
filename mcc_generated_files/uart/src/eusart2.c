@@ -129,8 +129,8 @@ void EUSART2_Initialize(void)
     RC2STA = 0x90; 
     //TX9D 0x0; BRGH hi_speed; SENDB sync_break_complete; SYNC asynchronous; TXEN enabled; TX9 8-bit; CSRC client; 
     TX2STA = 0x26; 
-    //SPBRGL 34; 
-    SP2BRGL = 0x22; 
+    //SPBRGL 68; 
+    SP2BRGL = 0x44; 
     //SPBRGH 0; 
     SP2BRGH = 0x0; 
 

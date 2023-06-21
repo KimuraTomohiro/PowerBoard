@@ -7,22 +7,25 @@
 #define bat_type_addr 2
 #define voltage_addr 3//3が下位ビット４が上位ビット
 #define output_addr 5
+#define HES_status_addr 6
 
 
 unsigned char control_table[20] = {0xFF};
 void init(void);
 void putch(unsigned char Data);
-
 void control_table_update(void);
 void RS485master_mode(void);
 void RS485slave_mode(void);
-void HES_Interrupt(void);
 void RS485_Send(char ID,char adress,char type,char data1,char data2);
 char *RS485_Receive();
 void timeout_flug_maker(void);
 char timeout_flug = 0;
 unsigned char buf[50]; 
 char RS485_buf[7]={0};
+char init_flug =0;
+char past_massage = 0;
+
+
 
 
 int main(void)
@@ -33,7 +36,6 @@ int main(void)
     INTERRUPT_PeripheralInterruptEnable();
     Timer0_OverflowCallbackRegister(control_table_update);
     Timer1_OverflowCallbackRegister(timeout_flug_maker);
-    HES_SetInterruptHandler(HES_Interrupt);
     Timer1_Stop();
     
     __delay_ms(2000);
@@ -72,6 +74,17 @@ void RS485master_mode(void){
         //uart_mode = 0;
         //
     printf("Waiting command...\n");
+        
+//    if(HES_flug == 1){
+//        control_table[output_addr] = 0;
+//        for(char i=1;i<7;i++){
+//            RS485_Send(i,output_addr,0x01,0x00,0xFF);
+//        }
+//    }
+//    
+    
+    
+    
         int buf_count = 0;
         do{
         while(EUSART2_IsRxReady() == false);
@@ -98,11 +111,15 @@ void RS485master_mode(void){
                 //実行用コマンド書く
                 //数字から’０’を引くことで数値に変換できる
                 if(buf[3]-'0'==0){
-                    //SE_SetHigh();
+                    
                     control_table[output_addr] = 1;
-                    //LED_R_SetHigh();
+                    
                 }else{
-                    RS485_Send(buf[3]-'0',output_addr,0x01,0x01,0xFF);
+                    for(char k=0;k<3;k++){
+                        RS485_Send(buf[3]-'0',output_addr,0x01,0x01,0xFF);
+                        __delay_us(10);
+                    }
+                    
                 }
             }else{
                 printf("Irregular Board num\n\n");
@@ -122,7 +139,10 @@ void RS485master_mode(void){
                     LED_R_SetLow();
                 
                 }else{
-                    RS485_Send(buf[4]-'0',output_addr,0x01,0x00,0xFF);
+                    for(char k=0;k<3;k++){
+                        RS485_Send(buf[4]-'0',output_addr,0x01,0x00,0xFF);
+                        __delay_us(10);
+                    }
                 }
                 
             }else{
@@ -134,16 +154,23 @@ void RS485master_mode(void){
                 
                 printf("Board %d: ",buf[5] - '0');
                 double voltage;
+                timeout_flug = 0;
                 if(buf[5]-'0'==0){
                     voltage = (double)((control_table[voltage_addr+1]<<8)+control_table[voltage_addr])/1023 * 5.04 * 11;
                 }else{
-                    
+                    RS485_Send(buf[5]-'0',voltage_addr,0x00,0xFF,0xFF);
                     char *voltage_buf = RS485_Receive();
+                    
+                printf("buf: %d %d %d %d %d %d %d %d\n\n",voltage_buf[0],voltage_buf[1],voltage_buf[2],voltage_buf[3],voltage_buf[4],voltage_buf[5],voltage_buf[6],voltage_buf[7],voltage_buf[8]);
+
                     voltage = (double)((voltage_buf[5]<<8)+control_table[4])/1023 * 5.04 * 11;
+                    
+                    
+                    
                 }
                 if(timeout_flug == 0){
-                printf("%d.",(int)voltage);
-                printf("%d\n\n",(int)(10*(voltage - (int)voltage)));
+                    printf("%d.",(int)voltage);
+                    printf("%d\n\n",(int)(10*(voltage - (int)voltage)));
                 }else{
                     printf("Error\n\n");
                 }
@@ -213,16 +240,16 @@ void RS485master_mode(void){
 void RS485slave_mode(void){
     char *get_buf = {0};
     while(1){
-        printf("Waiting\n");
+        //printf("Waiting\n");
         while(EUSART1_IsRxReady() == false);
         
         get_buf = RS485_Receive();
         
-//        printf("buf: %X %X %X %X %X %X %X\n",get_buf[0],get_buf[1],get_buf[2],get_buf[3],get_buf[4],get_buf[5],get_buf[6]); 
-//        printf("ID: %d",control_table[ID_addr]);
+        //printf("buf: %X %X %X %X %X %X %X\n",get_buf[0],get_buf[1],get_buf[2],get_buf[3],get_buf[4],get_buf[5],get_buf[6]); 
+        //printf("ID: %d",control_table[ID_addr]);
         
         if(get_buf[2] == control_table[ID_addr]){
-//            printf("ID clear");
+            //printf("ID clear");
             if(get_buf[4]== 1){
                 //書き込み命令の際
                 control_table[get_buf[3]]=get_buf[5];
@@ -231,7 +258,7 @@ void RS485slave_mode(void){
                 RS485_Send(0,get_buf[3],0,control_table[get_buf[3]],control_table[get_buf[3]+1]);
             }
         }
-        
+       // printf("OK\n");
         
     }
     }
@@ -246,6 +273,7 @@ void init(void){
     
     control_table[ID_addr] = SW_bit1_PORT + SW_bit2_PORT * 2 + SW_bit3_PORT * 4;
     
+    init_flug = 1;
     
 //    control_table[voltage_offset_addr] = FLASH_Read(6);
 //    if(control_table[voltage_offset_addr] == 0xFF){
@@ -258,6 +286,11 @@ void init(void){
 }
 
 void control_table_update(void){
+    
+    if(init_flug != 1)
+        return;
+    
+    
     int adc_data;
     adc_data = ADC_GetConversion(BAT);
     control_table[voltage_addr] = adc_data;
@@ -272,7 +305,27 @@ void control_table_update(void){
         control_table[bat_type_addr] = 0;
     }
     
-    if(control_table[output_addr] == 1){
+    if(control_table[ID_addr] == 0){
+        if(HES_PORT == 0 && past_massage != 0x01){
+            control_table[HES_status_addr] = 1;
+            for(char i=1;i<7;i++){
+                for(char k=0;k<5;k++){
+                    RS485_Send(i,HES_status_addr,0x01,0x01,0xFF);
+                }
+                past_massage = 0x01;
+            }
+        }else if(HES_PORT == 1 && past_massage != 0x00){
+            control_table[HES_status_addr] = 0;
+            for(char i=1;i<7;i++){
+                for(char k=0;k<5;k++){
+                    RS485_Send(i,HES_status_addr,0x01,0x00,0xFF);
+                }
+                past_massage = 0x00;
+            }
+        }
+    }
+    
+    if(control_table[output_addr] == 1 && control_table[HES_status_addr] == 0){
         SE_SetHigh();
         LED_R_SetHigh();
     }else{
@@ -324,28 +377,24 @@ void control_table_update(void){
     //printf("%d",(control_table[voltage_addr+1]<<8)+control_table[voltage_addr]);
 }
 
-void HES_Interrupt(void){
-    if(HES_PORT == 1){
-        SE_SetLow();
-    }
-}
 
 void RS485_Send(char ID,char adress,char type,char data1,char data2){
+    
     RS485_SW_SetHigh();
-    while(!EUSART1_IsTxReady());
-    EUSART1_Write(0xFF);
+    while(EUSART1_IsTxReady() == 0);
+        EUSART1_Write(0xFF);
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(0xFF);
+        EUSART1_Write(0xFF);
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(ID);
+        EUSART1_Write(ID);
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(adress);
+        EUSART1_Write(adress);
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(type);//書き込みなら１、読み出しなら０
+        EUSART1_Write(type);    //書き込みなら１、読み出しなら０
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(data1);
+        EUSART1_Write(data1);
     while(!EUSART1_IsTxDone());
-    EUSART1_Write(data2);//使わない場合は0xFF
+        EUSART1_Write(data2);   //使わない場合は0xFF
     RS485_SW_SetLow();
 }
 
@@ -364,7 +413,7 @@ char *RS485_Receive(){
             for(int t=0;t<7;t++){
             RS485_buf[t] = 0;
             return RS485_buf;
-    }
+            }
         }
             
     }

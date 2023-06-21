@@ -43,8 +43,8 @@ void CLOCK_Initialize(void)
     OSCCON3 = 0x40;
     //EXTOEN disabled; HFOEN disabled; MFOEN disabled; LFOEN disabled; SOSCEN disabled; ADOEN disabled; 
     OSCEN = 0x0;
-    //HFFRQ 8_MHz; 
-    OSCFRQ = 0x3;
+    //HFFRQ 32_MHz; 
+    OSCFRQ = 0x6;
     //TUN undefined; 
     OSCTUNE = 0x0;
 

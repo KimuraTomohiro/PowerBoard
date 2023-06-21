@@ -54,8 +54,8 @@ void Timer0_Initialize(void)
     //TMR0L 0; 
     TMR0L = 0x0;
 
-    //T0CS HFINTOSC; T0CKPS 1:2048; T0ASYNC synchronised; 
-    T0CON1 = 0x6B;
+    //T0CS HFINTOSC; T0CKPS 1:4096; T0ASYNC synchronised; 
+    T0CON1 = 0x6C;
 
 
     //Set default callback for TMR0 overflow interrupt
@@ -67,8 +67,8 @@ void Timer0_Initialize(void)
     //Enable TMR0 interrupt.
     PIE0bits.TMR0IE = 1;
 	
-    //T0OUTPS 1:8; T0EN enabled; T016BIT 8-bit; 
-    T0CON0 = 0x87;
+    //T0OUTPS 1:16; T0EN enabled; T016BIT 8-bit; 
+    T0CON0 = 0x8F;
 }
 
 void Timer0_Start(void)

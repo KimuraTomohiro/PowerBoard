@@ -248,7 +248,7 @@ void RS485slave_mode(void){
         //printf("buf: %X %X %X %X %X %X %X\n",get_buf[0],get_buf[1],get_buf[2],get_buf[3],get_buf[4],get_buf[5],get_buf[6]); 
         //printf("ID: %d",control_table[ID_addr]);
         
-        if(get_buf[2] == control_table[ID_addr]){
+        if(get_buf[2] == control_table[ID_addr] || get_buf[2] == 0xAA){//0xAA‚ÍˆêÄ‘—M
             //printf("ID clear");
             if(get_buf[4]== 1){
                 //‘‚«‚İ–½—ß‚ÌÛ
@@ -307,21 +307,27 @@ void control_table_update(void){
     
     if(control_table[ID_addr] == 0){
         if(HES_PORT == 0 && past_massage != 0x01){
+            past_massage = 0x01;
             control_table[HES_status_addr] = 1;
-            for(char i=1;i<7;i++){
-                for(char k=0;k<5;k++){
-                    RS485_Send(i,HES_status_addr,0x01,0x01,0xFF);
-                }
-                past_massage = 0x01;
+            
+            for(char k=0;k<5;k++){
+                RS485_Send(0xAA,HES_status_addr,0x01,0x01,0xFF);
+                __delay_us(10);
             }
+                
+                
+            
         }else if(HES_PORT == 1 && past_massage != 0x00){
+            past_massage = 0x00;
             control_table[HES_status_addr] = 0;
-            for(char i=1;i<7;i++){
-                for(char k=0;k<5;k++){
-                    RS485_Send(i,HES_status_addr,0x01,0x00,0xFF);
-                }
-                past_massage = 0x00;
+            
+            for(char k=0;k<5;k++){
+                RS485_Send(0xAA,HES_status_addr,0x01,0x00,0xFF);
+                __delay_us(10);
             }
+            
+                
+            
         }
     }
     

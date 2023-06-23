@@ -24,6 +24,7 @@ unsigned char buf[50];
 char RS485_buf[7]={0};
 char init_flug =0;
 char past_massage = 0;
+int LED_count = 0;
 
 
 
@@ -75,14 +76,6 @@ void RS485master_mode(void){
         //
     printf("Waiting command...\n");
         
-//    if(HES_flug == 1){
-//        control_table[output_addr] = 0;
-//        for(char i=1;i<7;i++){
-//            RS485_Send(i,output_addr,0x01,0x00,0xFF);
-//        }
-//    }
-//    
-    
     
     
         int buf_count = 0;
@@ -121,7 +114,17 @@ void RS485master_mode(void){
                     }
                     
                 }
+            }else if(buf[3] == 'A'){
+                printf("Turn ON ALL Boards\n\n");
+                control_table[output_addr] = 1;
+                for(char k=0;k<3;k++){
+                    RS485_Send(0xAA,output_addr,0x01,0x01,0xFF);
+                    __delay_us(10);
+                }
+                
+                
             }else{
+                
                 printf("Irregular Board num\n\n");
             }
             
@@ -144,6 +147,15 @@ void RS485master_mode(void){
                         __delay_us(10);
                     }
                 }
+                
+            }else if(buf[4] == 'A'){
+                printf("Turn OFF ALL Boards\n\n");
+                control_table[output_addr] = 0;
+                for(char k=0;k<3;k++){
+                    RS485_Send(0xAA,output_addr,0x01,0x00,0xFF);
+                    __delay_us(10);
+                }
+                
                 
             }else{
                 printf("Irregular Board num\n\n");
@@ -178,48 +190,6 @@ void RS485master_mode(void){
                 printf("Irregular Board num\n\n");
             }
             
-            
-//        }else if(strncmp(buf,"VOFFSET", strlen("VOFFSET")) == 0){
-//            if(isdigit(buf[8]) == 1){ 
-//                printf("OK Input Offset * 100\n");
-//                for(int i=0; i<50; i++){
-//                buf[i] = 0;
-//                }
-//                
-//                do{
-//                    while(EUSART2_IsRxReady() == false);
-//                    buf[buf_count] = EUSART2_Read();
-//
-//                    buf_count++;
-//
-//                    if(buf_count >= 50){
-//                        break;
-//                    }
-//           
-//                }while(buf[buf_count - 1] != '-');
-//                
-//                double offset=0;
-//                switch(strlen(buf)){
-//                    case 1:
-//                        offset = (buf[0]-'0')/100.0;
-//                        break;
-//                       
-//                    case 2:
-//                        offset = (buf[0]-'0')/10.0 + (buf[1]-'0')/100.0;
-//                        break;
-//                        
-//                    case 3:
-//                        offset = (buf[0]-'0') + (buf[1]-'0')/10.0+ (buf[2]-'0')/100.0;
-//                        break;
-//                              
-//                }
-//                  
-//            }else{
-//                printf("Irregular Board num\n\n");
-//            }
-//            
-//            
-//            
         }else{
             printf("Irregular command\n\n");
         }
@@ -248,7 +218,7 @@ void RS485slave_mode(void){
         //printf("buf: %X %X %X %X %X %X %X\n",get_buf[0],get_buf[1],get_buf[2],get_buf[3],get_buf[4],get_buf[5],get_buf[6]); 
         //printf("ID: %d",control_table[ID_addr]);
         
-        if(get_buf[2] == control_table[ID_addr] || get_buf[2] == 0xAA){//0xAAÇÕàÍêƒëóêM
+        if(get_buf[2] == control_table[ID_addr] || (get_buf[2] == 0xAA && control_table[ID_addr] <6)){//0xAAÇÕàÍêƒëóêM
             //printf("ID clear");
             if(get_buf[4]== 1){
                 //èëÇ´çûÇ›ñΩóﬂÇÃç€
@@ -286,7 +256,7 @@ void init(void){
 }
 
 void control_table_update(void){
-    
+   
     if(init_flug != 1)
         return;
     
@@ -350,8 +320,12 @@ void control_table_update(void){
                 LED_Y_SetHigh();
                 
             }else{
+                 LED_count ++;
+                 if(LED_count > 5){
+                     LED_Y_Toggle();
+                     LED_count = 0;
+                 }
                 LED_G_SetLow();
-                LED_Y_SetLow();
                 
             }
             break;
@@ -366,9 +340,12 @@ void control_table_update(void){
                 LED_Y_SetHigh();
                 
             }else{
+                 LED_count ++;
+                 if(LED_count > 5){
+                     LED_Y_Toggle();
+                     LED_count = 0;
+                 }
                 LED_G_SetLow();
-                LED_Y_SetLow();
-                
             }
             break;
             
